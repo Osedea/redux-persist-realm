@@ -1,0 +1,30 @@
+{
+  "name": "redux-persist-realm",
+  "version": "0.1.0",
+  "description": "A Realmjs interface for redux-persist",
+  "main": "RealmPersistInterface.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Osedea/redux-persist-realm.git"
+  },
+  "keywords": [
+    "realm",
+    "redux-persist",
+    "react-native",
+    "persistor",
+    "realmjs"
+  ],
+  "author": "Adrien Thiery",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Osedea/redux-persist-realm/issues"
+  },
+  "homepage": "https://github.com/Osedea/redux-persist-realm#readme",
+  "peerDependencies": {
+      "realm": "^1.8.3",
+      "redux-persist": "^4.0.0"
+  }
+}
