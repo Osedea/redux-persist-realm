@@ -1,5 +1,24 @@
 import Realm from 'realm';
 
+// Wrap function to support both Promise and callback
+// https://github.com/leethree/redux-persist-fs-storage/blob/master/index.js
+async function withCallback<R>(callback?: ?(error: ?Error, result: R | void) => void,
+                               func: () => Promise<R>,): Promise<R | void> {
+    try {
+        const result = await func();
+        if (callback) {
+            callback(null, result);
+        }
+        return result;
+    } catch (err) {
+        if (callback) {
+            callback(err);
+        } else {
+            throw err;
+        }
+    }
+}
+
 class RealmPersistInterface {
     constructor() {
         this.realm = new Realm({
@@ -16,98 +35,53 @@ class RealmPersistInterface {
         this.items = this.realm.objects('Item');
     }
 
-    getItem = (key, callback) => {
-        try {
+    getItem = (
+        key: string,
+        callback?: ?(error: ?Error, result: ?string) => void,
+    ): Promise<?string> =>
+        withCallback(callback, async () => {
             const matches = this.items.filtered(`name = "${key}"`);
-
             if (matches.length > 0 && matches[0]) {
-                if (callback) {
-                    callback(null, matches[0].content);
-                }
-                return Promise.resolve(matches[0].content);
-            } else {
-                throw new Error(`Could not get item with key: '${key}'`);
+                return matches[0].content;
             }
-        } catch (error) {
-            if (callback) {
-                callback(error);
-            }
-            return Promise.reject(error);
-        }
-    };
+        });
 
-    setItem = (key, value, callback) => {
-        try {
-            this.getItem(key, (error) => {
-                this.realm.write(() => {
-                    if (error) {
-                        this.realm.create(
-                            'Item',
-                            {
-                                name: key,
-                                content: value,
-                            }
-                        );
-                    } else {
-                        this.realm.create(
-                            'Item',
-                            {
-                                name: key,
-                                content: value,
-                            },
-                            true
-                        );
-                    }
-                    if (callback) {
-                        callback();
-                    }
-                    return Promise.resolve(null);
-                });
+    setItem = (key: string,
+               value: string,
+               callback?: ?(error: ?Error) => void): Promise<void> =>
+        withCallback(callback, async () => {
+            this.realm.write(() => {
+                this.realm.create(
+                    'Item',
+                    {
+                        name: key,
+                        content: value,
+                    },
+                    true
+                );
             });
-        } catch (error) {
-            if (callback) {
-                callback(error);
-            }
-            return Promise.reject(error);
-        }
-    };
+        });
 
-    removeItem = (key, callback) => {
-        try {
+    removeItem = (
+        key: string,
+        callback?: ?(error: ?Error) => void,
+    ): Promise<void> =>
+        withCallback(callback, async () => {
             this.realm.write(() => {
                 const item = this.items.filtered(`name = "${key}"`);
-
                 this.realm.delete(item);
             });
-            if (callback) {
-                callback(null);
-            }
-            return Promise.resolve(null);
-        } catch (error) {
-            if (callback) {
-                callback(error);
-            }
-            return Promise.reject(error);
-        }
-    };
+        });
 
-    getAllKeys = (callback) => {
-        try {
+    getAllKeys = (
+        callback?: ?(error: ?Error, keys: ?Array<string>) => void,
+    ) =>
+        withCallback(callback, async () => {
             const keys = this.items.map(
                 (item) => item.name
             );
-
-            if (callback) {
-                callback(null, keys);
-            }
-            return Promise.resolve(keys);
-        } catch (error) {
-            if (callback) {
-                callback(error);
-            }
-            return Promise.reject(error);
-        }
-    };
+            return keys;
+        });
 }
 
 const singleton = new RealmPersistInterface();
