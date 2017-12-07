@@ -21,12 +21,18 @@ class RealmPersistInterface {
             const matches = this.items.filtered(`name = "${key}"`);
 
             if (matches.length > 0 && matches[0]) {
-                callback(null, matches[0].content);
+                if (callback) {
+                    callback(null, matches[0].content);
+                }
+                return Promise.resolve(matches[0].content);
             } else {
                 throw new Error(`Could not get item with key: '${key}'`);
             }
         } catch (error) {
-            callback(error);
+            if (callback) {
+                callback(error);
+            }
+            return Promise.reject(error);
         }
     };
 
@@ -52,12 +58,17 @@ class RealmPersistInterface {
                             true
                         );
                     }
-
-                    callback();
+                    if (callback) {
+                        callback();
+                    }
+                    return Promise.resolve(null);
                 });
             });
         } catch (error) {
-            callback(error);
+            if (callback) {
+                callback(error);
+            }
+            return Promise.reject(error);
         }
     };
 
@@ -68,8 +79,15 @@ class RealmPersistInterface {
 
                 this.realm.delete(item);
             });
+            if (callback) {
+                callback(null);
+            }
+            return Promise.resolve(null);
         } catch (error) {
-            callback(error);
+            if (callback) {
+                callback(error);
+            }
+            return Promise.reject(error);
         }
     };
 
@@ -79,9 +97,15 @@ class RealmPersistInterface {
                 (item) => item.name
             );
 
-            callback(null, keys);
+            if (callback) {
+                callback(null, keys);
+            }
+            return Promise.resolve(keys);
         } catch (error) {
-            callback(error);
+            if (callback) {
+                callback(error);
+            }
+            return Promise.reject(error);
         }
     };
 }
