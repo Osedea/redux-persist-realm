@@ -1,91 +1,98 @@
+// @flow
 import Realm from 'realm';
 
-class RealmPersistInterface {
-    constructor() {
-        this.realm = new Realm({
-            schema: [{
-                name: 'Item',
-                primaryKey: 'name',
-                properties: {
-                    name: 'string',
-                    content: 'string',
-                },
-            }],
-        });
+/**
+ * modified by Stanimir Marinov (https://github.com/sytolk)
+ * following: https://github.com/leethree/redux-persist-fs-storage/blob/master/index.js
+ */
 
-        this.items = this.realm.objects('Item');
+// Wrap function to support both Promise and callback
+async function withCallback<R>(
+    callback?: ?(error: ?Error, result: R | void) => void,
+    func: () => Promise<R>
+): Promise<R | void> {
+    try {
+        const result = await func();
+        if (callback) {
+            callback(null, result);
+        }
+        return result;
+    } catch (err) {
+        if (callback) {
+            callback(err);
+        } else {
+            throw err;
+        }
     }
-
-    getItem = (key, callback) => {
-        try {
-            const matches = this.items.filtered(`name = "${key}"`);
-
-            if (matches.length > 0 && matches[0]) {
-                callback(null, matches[0].content);
-            } else {
-                throw new Error(`Could not get item with key: '${key}'`);
-            }
-        } catch (error) {
-            callback(error);
-        }
-    };
-
-    setItem = (key, value, callback) => {
-        try {
-            this.getItem(key, (error) => {
-                this.realm.write(() => {
-                    if (error) {
-                        this.realm.create(
-                            'Item',
-                            {
-                                name: key,
-                                content: value,
-                            }
-                        );
-                    } else {
-                        this.realm.create(
-                            'Item',
-                            {
-                                name: key,
-                                content: value,
-                            },
-                            true
-                        );
-                    }
-
-                    callback();
-                });
-            });
-        } catch (error) {
-            callback(error);
-        }
-    };
-
-    removeItem = (key, callback) => {
-        try {
-            this.realm.write(() => {
-                const item = this.items.filtered(`name = "${key}"`);
-
-                this.realm.delete(item);
-            });
-        } catch (error) {
-            callback(error);
-        }
-    };
-
-    getAllKeys = (callback) => {
-        try {
-            const keys = this.items.map(
-                (item) => item.name
-            );
-
-            callback(null, keys);
-        } catch (error) {
-            callback(error);
-        }
-    };
 }
 
-const singleton = new RealmPersistInterface();
+const RealmPersistInterface = (
+    encryptionKey?: Int8Array,
+    schemaName?: string = 'Item',
+    keyColumn?: string = 'key',
+    valueColumn?: string = 'value',
+) => {
+    const config: Object = {
+        schema: [{
+            name: schemaName,
+            primaryKey: keyColumn,
+            properties: {
+                [keyColumn]: 'string',
+                [valueColumn]: 'string',
+            },
+        }],
+    };
 
-export default singleton;
+    if (encryptionKey) {
+        config.encryptionKey = encryptionKey;
+    }
+
+    const realm = new Realm(config);
+
+    const items = realm.objects(schemaName);
+
+    const getItem = (
+        key: string,
+        callback?: ?(error: ?Error, result: ?string) => void,
+    ): Promise<?string> =>
+        withCallback(callback, async () => {
+            const item = realm.objectForPrimaryKey(schemaName, key);
+            if (item) {
+                return item[valueColumn];
+            }
+        });
+
+    const setItem = (
+        key: string,
+        value: string,
+        callback?: ?(error: ?Error) => void
+    ): Promise<void> =>
+        withCallback(callback, async () => {
+            realm.write(() => {
+                realm.create(schemaName, { key, value }, true);
+            });
+        });
+
+    const removeItem = (
+        key: string,
+        callback?: ?(error: ?Error) => void,
+    ): Promise<void> =>
+        withCallback(callback, async () => {
+            const item = realm.objectForPrimaryKey(schemaName, key);
+            if (item) {
+                realm.write(() => realm.delete(item));
+            }
+        });
+
+    const getAllKeys = (callback?: ?(error: ?Error, keys: ?Array<string>) => void) =>
+        withCallback(callback, async () => items.map((item) => item[keyColumn]));
+
+    return {
+        setItem,
+        getItem,
+        removeItem,
+        getAllKeys,
+    };
+};
+
+export default RealmPersistInterface;
