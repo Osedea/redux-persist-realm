@@ -24,7 +24,7 @@ class RealmPersistInterface {
               if (matches.length > 0 && matches[0]) {
                   resolve(null, matches[0].content);
               } else {
-                  reject(new Erro(`Could not get item with key: '${key}'`));
+                  reject(new Error(`Could not get item with key: '${key}'`));
               }
           } catch (error) {
               reject(error);
