@@ -1,98 +1,91 @@
 import Realm from 'realm';
 
 class RealmPersistInterface {
-    constructor() {
-        this.realm = new Realm({
-            schema: [{
-                name: 'Item',
-                primaryKey: 'name',
-                properties: {
-                    name: 'string',
-                    content: 'string',
-                },
-            }],
-        });
+	constructor() {
+		this.realm = Realm.open({
+			schema: [
+				{
+					name: 'Item',
+					primaryKey: 'name',
+					properties: {
+						name: 'string',
+						content: 'string'
+					}
+				}
+			]
+		});
+	}
 
-        this.items = this.realm.objects('Item');
-    }
+	check = async () => {
+		if (!this.items) {
+			this.realm = await this.realm;
+			this.items = this.realm.objects('Item');
+		}
+	};
 
-    getItem = (key) => {
-        return new Promise((resolve, reject) => {
-          try {
-              const matches = this.items.filtered(`name = "${key}"`);
+	getItem = async key => {
+		await this.check();
 
-              if (matches.length > 0 && matches[0]) {
-                  resolve(null, matches[0].content);
-              } else {
-                  reject(new Error(`Could not get item with key: '${key}'`));
-              }
-          } catch (error) {
-              reject(error);
-          }
-        })
-    };
+		return new Promise((resolve, reject) => {
+			try {
+				const matches = this.items.filtered(`name = "${key}"`);
 
-    setItem = (key, value) => {
-        return new Promise((resolve, reject) => {
-          try {
-              this.getItem(key, (error) => {
-                  this.realm.write(() => {
-                      if (error) {
-                          this.realm.create(
-                              'Item',
-                              {
-                                  name: key,
-                                  content: value,
-                              }
-                          );
-                      } else {
-                          this.realm.create(
-                              'Item',
-                              {
-                                  name: key,
-                                  content: value,
-                              },
-                              true
-                          );
-                      }
+				if (matches.length > 0 && matches[0]) {
+					resolve(null, matches[0].content);
+				} else {
+					reject(new Error(`Could not get item with key: '${key}'`));
+				}
+			} catch (error) {
+				reject(error);
+			}
+		});
+	};
 
-                      resolve();
-                  });
-              });
-          } catch (error) {
-              reject(error);
-          }
-        })
-    };
+	setItem = async (key, value) => {
+		await this.check();
 
-    removeItem = (key) => {
-        return new Promise((resolve, reject) => {
-          try {
-              this.realm.write(() => {
-                  const item = this.items.filtered(`name = "${key}"`);
+		return new Promise((resolve, reject) => {
+			try {
+				this.realm.write(() => {
+					this.realm.create('Item', { name: key, content: value }, true);
+					resolve();
+				});
+			} catch (error) {
+				reject(error);
+			}
+		});
+	};
 
-                  this.realm.delete(item);
-              });
-              resolve();
-          } catch (error) {
-              reject(error);
-          }
-        })
-    };
+	removeItem = async key => {
+		await this.check();
 
-    getAllKeys = () => {
-        return new Promise((resolve, reject) => {
-          try {
-              const keys = this.items.map(
-                  (item) => item.name
-              );
+		return new Promise((resolve, reject) => {
+			try {
+				this.realm.write(() => {
+					const item = this.items.filtered(`name = "${key}"`);
 
-              resolve(null, keys);
-          } catch (error) {
-              reject(error);
-          }
-        })
-    };
+					this.realm.delete(item);
+				});
+				resolve();
+			} catch (error) {
+				reject(error);
+			}
+		});
+	};
+
+	getAllKeys = async () => {
+		await this.check();
+
+		return new Promise((resolve, reject) => {
+			try {
+				const keys = this.items.map(item => item.name);
+
+				resolve(null, keys);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	};
 }
 
 const singleton = new RealmPersistInterface();
