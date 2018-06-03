@@ -31,7 +31,7 @@ class RealmPersistInterface {
 				const matches = this.items.filtered(`name = "${key}"`);
 
 				if (matches.length > 0 && matches[0]) {
-					resolve(null, matches[0].content);
+					resolve(matches[0].content);
 				} else {
 					reject(new Error(`Could not get item with key: '${key}'`));
 				}
@@ -79,8 +79,7 @@ class RealmPersistInterface {
 		return new Promise((resolve, reject) => {
 			try {
 				const keys = this.items.map(item => item.name);
-
-				resolve(null, keys);
+				resolve(keys);
 			} catch (error) {
 				reject(error);
 			}
