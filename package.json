@@ -30,6 +30,7 @@
   "devDependencies": {
     "realm": "^2.0.12",
     "redux-persist": "^5.4.0",
-    "redux": "^3.7.2"
+    "redux": "^3.7.2",
+    "es6-symbol": "^3.1.1"
   }
 }

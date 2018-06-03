@@ -1,7 +1,18 @@
 import Realm from 'realm';
 
-class RealmPersistInterface {
-	constructor() {
+var Symbol = require('es6-symbol/polyfill');
+
+const singleton = Symbol();
+const singletonEnforcer = Symbol();
+
+export default class RealmPersistInterface {
+	constructor(enforcer) {
+		if (enforcer !== singletonEnforcer) {
+			throw new Error('Cannot construct singleton');
+		}
+
+		this._type = 'RealmPersistInterface';
+
 		this.realm = Realm.open({
 			schema: [
 				{
@@ -16,14 +27,26 @@ class RealmPersistInterface {
 		});
 	}
 
-	check = async () => {
+	static get instance() {
+		if (!this[singleton]) {
+			this[singleton] = new RealmPersistInterface(singletonEnforcer);
+		}
+
+		return this[singleton];
+	}
+
+	get type() {
+		return this._type;
+	}
+
+	async check() {
 		if (!this.items) {
 			this.realm = await this.realm;
 			this.items = this.realm.objects('Item');
 		}
 	};
 
-	getItem = async key => {
+	async getItem(key) {
 		await this.check();
 
 		return new Promise((resolve, reject) => {
@@ -41,7 +64,7 @@ class RealmPersistInterface {
 		});
 	};
 
-	setItem = async (key, value) => {
+	async setItem(key, value) {
 		await this.check();
 
 		return new Promise((resolve, reject) => {
@@ -56,7 +79,7 @@ class RealmPersistInterface {
 		});
 	};
 
-	removeItem = async key => {
+	async removeItem(key) {
 		await this.check();
 
 		return new Promise((resolve, reject) => {
@@ -73,7 +96,7 @@ class RealmPersistInterface {
 		});
 	};
 
-	getAllKeys = async () => {
+	async getAllKeys() {
 		await this.check();
 
 		return new Promise((resolve, reject) => {
@@ -86,7 +109,3 @@ class RealmPersistInterface {
 		});
 	};
 }
-
-const singleton = new RealmPersistInterface();
-
-export default singleton;
