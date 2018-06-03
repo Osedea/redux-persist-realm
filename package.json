@@ -1,6 +1,6 @@
 {
   "name": "redux-persist-realm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Realmjs interface for redux-persist",
   "main": "RealmPersistInterface.js",
   "scripts": {
@@ -24,7 +24,12 @@
   },
   "homepage": "https://github.com/Osedea/redux-persist-realm#readme",
   "peerDependencies": {
-      "realm": "^1.8.3",
-      "redux-persist": "^4.0.0"
+    "realm": "2.x",
+    "redux-persist": "5.x"
+  },
+  "devDependencies": {
+    "realm": "^2.0.12",
+    "redux-persist": "^5.4.0",
+    "redux": "^3.7.2"
   }
 }
