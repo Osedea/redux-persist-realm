@@ -44,7 +44,7 @@ export default class RealmPersistInterface {
 			this.realm = await this.realm;
 			this.items = this.realm.objects('Item');
 		}
-	};
+	}
 
 	async getItem(key) {
 		await this.check();
@@ -86,10 +86,9 @@ export default class RealmPersistInterface {
 			try {
 				this.realm.write(() => {
 					const item = this.items.filtered(`name = "${key}"`);
-
 					this.realm.delete(item);
+					resolve();
 				});
-				resolve();
 			} catch (error) {
 				reject(error);
 			}
