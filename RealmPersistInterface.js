@@ -14,6 +14,7 @@ export default class RealmPersistInterface {
 		this._type = 'RealmPersistInterface';
 
 		this.realm = Realm.open({
+			path: 'redux.realm',
 			schema: [
 				{
 					name: 'Item',
