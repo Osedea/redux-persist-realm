@@ -1,6 +1,6 @@
 {
-  "name": "redux-persist-realm",
-  "version": "0.1.0",
+  "name": "@brighte/redux-persist-realm",
+  "version": "0.1.1",
   "description": "A Realmjs interface for redux-persist",
   "main": "RealmPersistInterface.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Osedea/redux-persist-realm.git"
+    "url": "git+https://github.com/jp928/redux-persist-realm.git"
   },
   "keywords": [
     "realm",
@@ -17,14 +17,15 @@
     "persistor",
     "realmjs"
   ],
-  "author": "Adrien Thiery",
+  "author": "Jingtai Piao",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Osedea/redux-persist-realm/issues"
+    "url": "https://github.com/jp928/redux-persist-realm/issues"
   },
-  "homepage": "https://github.com/Osedea/redux-persist-realm#readme",
+  "homepage": "https://github.com/jp928/redux-persist-realm#readme",
   "peerDependencies": {
-      "realm": "^1.8.3",
-      "redux-persist": "^4.0.0"
+    "realm": "^2.7.1",
+    "redux-persist": "^5.10.0",
+    "redux": "^4.0.0"
   }
 }
